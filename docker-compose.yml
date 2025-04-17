@@ -1,40 +1,55 @@
-version: '3.8'
+version: '3.9'
+
+networks:
+  bitcoin-regtest-network:
+    driver: bridge
+
 services:
-  bitcoind:
-    container_name: bitcoind
-    user: 1000:1000
-    image: lncm/bitcoind:v27.0
-    command: ["-printtoconsole"]
-    restart: always
-    volumes:
-      - ./bitcoin.conf:/data/.bitcoin/bitcoin.conf
-      - bitcoin_data:/data/.bitcoin
+  bitcoin-regtest-node:
+    image: ruimarinho/bitcoin-core:24.0.1 # TODO Build our own trusted Bitcoin Core Docker image instead of using ruimarinho's.
+    container_name: bitcoin-regtest-node
     ports:
-      - "8333:8333"  # Bitcoin P2P port
-      - "8332:8332"  # Bitcoin RPC port
+      - "18443:18443"
+      - "18444:18444"
     networks:
-      - bitcoin_network
+      - bitcoin-regtest-network
+    command:
+      - -printtoconsole
+      - -regtest=1
+      - -rpcallowip=0.0.0.0/0
+      - -rpcbind=0.0.0.0
+      - -rpcuser=foo
+      - -rpcpassword=rpcpassword
+      - -fallbackfee=0.0001
+      - -minrelaytxfee=0.00001
+      - -maxtxfee=10000000
+      - -txindex
+      # - -debug=1
+      # - -debug=rpc
+      # - -debug=net
+      # - -debug=mempool
+      # - -debug=validation
+    restart: always
 
   ord:
     container_name: ord
     build:
       context: .
-    command:  ["--data-dir", "/index-data", "--rpc-url", "bitcoind:8332", "server", "--http-port", "8080"]
+    command:  ["--data-dir", "/index-data", "--bitcoin-rpc-url", "bitcoin-regtest-node:18443", "--regtest", "--bitcoin-rpc-password", "rpcpassword", "--bitcoin-rpc-username", "foo", "server", "--http-port", "8080"]
     volumes:
       - index_data:/index-data
     environment:
-      - ORD_BITCOIN_RPC_USER=$RPC_USER
-      - ORD_BITCOIN_RPC_PASS=$RPC_PASSWORD
+      - ORD_BITCOIN_RPC_USER=foo
+      - ORD_BITCOIN_RPC_PASS=rpcpassword
+      - ORD_BITCOIN_RPC_URL=http://bitcoin-regtest-node:18443
     ports:
       - "8080:8080"
     depends_on:
-      - bitcoind
+      - bitcoin-regtest-node
     networks:
-      - bitcoin_network
+      - bitcoin-regtest-network
 
 volumes:
   bitcoin_data:
   index_data:
 
-networks:
-  bitcoin_network:
