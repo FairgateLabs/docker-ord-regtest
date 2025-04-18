@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+# example:  ./ordinal.sh --file=fairgate.png --destiny-address=bcrt1pnyhqvdrw4hndcntckmzwadcy00g4cvxfjfaf580ke83g6a4ge65qcwzjml
 
 # === Configurable Variables ===
 
