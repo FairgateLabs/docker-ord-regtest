@@ -168,3 +168,6 @@ docker exec -i "$BITCOIN_NODE_CONTAINER" bitcoin-cli -regtest -rpcuser="$BITCOIN
 # Final info
 echo "TXID: $INSCRIPTION_TXID"
 echo "VOUT: $INSCRIPTION_VOUT"
+
+echo ""
+echo "ordinal outpoint: $INSCRIPTION_TXID:$INSCRIPTION_VOUT"
